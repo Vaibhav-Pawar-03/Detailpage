@@ -21,7 +21,7 @@ export default function BrazilPage() {
           items={[
             { label: "Home", href: "/" },
             { label: "Destinations", href: "/destinations" },
-            { label: "brazil" },
+            { label: "Brazil" },
           ]}
         />
       </div>

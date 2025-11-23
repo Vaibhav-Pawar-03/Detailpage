@@ -12,8 +12,8 @@ const navLinks = [
 
   { href: "/destinations", label: "Destinations" },
   { href: "/hospitals", label: "Hospitals" },
-  { href: "/service", label: "Services" },
-  { href: "#", label: "About us" },
+  { href: "/service", label: "Treatments & Procedures" },
+  { href: "/about", label: "About us" },
   { href: "#", label: "Blog" },
 ];
 
