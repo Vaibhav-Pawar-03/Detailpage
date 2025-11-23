@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Inter } from "next/font/google";
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 
 const interRegular = Inter({
@@ -21,48 +23,85 @@ const body1 = Inter({
 
 export default function MedicalPrecision() {
   const countries = [
-    { name: "Turkey", img: "/page2.1.png" },
-    { name: "UAE", img: "/page2.2.png" },
-    { name: "India", img: "/page2.3.png" },
-    { name: "Singapore", img: "/page2.4.png" },
-    { name: "South Korea", img: "/page2.5.png" },
-    { name: "Thailand", img: "/page2.1.png" },
-    { name: "Malaysia", img: "/page2.2.png" },
-    { name: "Mexico", img: "/page2.3.png" },
-    { name: "Brazil", img: "/page2.4.png" },
-    { name: "Spain", img: "/page2.5.png" },
+    { name: "Turkey", img: "/turkey-new.jpg", slug: "turkey" },
+    { name: "Mexico", img: "/mexico.jpg", slug: "mexico" },
+    { name: "Thailand", img: "/thailand-new.jpg", slug: "thailand" },
+    { name: "Vietnam", img: "/vietnam.jpg", slug: "vietnam" },
+    { name: "Costa Rica", img: "/costa-rica.jpg", slug: "costa-rica" },
+    { name: "UAE", img: "/uae.jpg", slug: "uae" },
+    { name: "India", img: "/india.jpg", slug: "india" },
+    { name: "Brazil", img: "/brazil.jpg", slug: "brazil" },
+    { name: "Germany", img: "/germany.jpg", slug: "germany" },
+    { name: "Malaysia", img: "/malaysia.jpg", slug: "malaysia" },
+    { name: "Singapore", img: "/singapore.jpg", slug: "singapore" },
+    { name: "South Korea", img: "/south-korea.jpg", slug: "south-korea" },
+    { name: "Spain", img: "/spain.jpg", slug: "spain" },
   ];
 
-  // Create infinite loop by triplicating countries
-  const extendedCountries = [...countries, ...countries, ...countries];
+  const viewportRef = useRef<HTMLDivElement | null>(null);
 
-  const [activeIndex, setActiveIndex] = useState(countries.length); // Start at middle set
-  const [isTransitioning, setIsTransitioning] = useState(true);
+  // RESPONSIVE CARD WIDTH
+  const [cardWidth, setCardWidth] = useState(360);
+  const [visibleCards, setVisibleCards] = useState(3);
 
-  const handleNext = () => {
-    setIsTransitioning(true);
-    setActiveIndex((prev) => prev + 1);
-  };
-
-  const handlePrev = () => {
-    setIsTransitioning(true);
-    setActiveIndex((prev) => prev - 1);
-  };
-
-  // Reset position when reaching clones for infinite effect
   useEffect(() => {
-    if (activeIndex >= countries.length * 2) {
-      setTimeout(() => {
-        setIsTransitioning(false);
-        setActiveIndex(countries.length);
-      }, 500);
-    } else if (activeIndex < countries.length) {
-      setTimeout(() => {
-        setIsTransitioning(false);
-        setActiveIndex(countries.length * 2 - 1);
-      }, 500);
+    const updateSize = () => {
+      const screen = window.innerWidth;
+
+      if (screen < 500) {
+        setCardWidth(screen - 60);
+        setVisibleCards(1);
+      } else if (screen < 900) {
+        setCardWidth(300);
+        setVisibleCards(2);
+      } else {
+        setCardWidth(360);
+        setVisibleCards(3);
+      }
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  const CARD_HEIGHT = 450;
+  const GAP = 44;
+
+  const [index, setIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const maxIndex = countries.length - visibleCards;
+
+  const handlePrev = () => setIndex((i) => Math.max(i - 1, 0));
+  const handleNext = () => setIndex((i) => Math.min(i + 1, maxIndex));
+
+  // Touch handlers for swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && index < maxIndex) {
+      handleNext();
+    } else if (isRightSwipe && index > 0) {
+      handlePrev();
     }
-  }, [activeIndex, countries.length]);
+
+    // Reset
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
 
   return (
     <section className="relative bg-[#E9F5F2] py-16 md:py-24 px-6 rounded-4xl mx-4 md:mx-12 my-12 overflow-hidden">
@@ -88,75 +127,59 @@ export default function MedicalPrecision() {
           </p>
         </div>
 
-        {/* ✅ Country Carousel */}
-        <div className="overflow-hidden pt-4">
+        {/* Country Carousel */}
+        <div ref={viewportRef} className="relative w-full overflow-hidden py-4">
           <div
-            className={`flex gap-40 justify-center items-center ${
-              isTransitioning ? "transition-transform duration-500 ease-in-out" : ""
-            }`}
+            className="flex transition-transform duration-700 px-1"
             style={{
-              transform: `translateX(-${activeIndex * (250 + 160)}px)`,
+              gap: `${GAP}px`,
+              transform: `translateX(-${index * (cardWidth + GAP)}px)`,
             }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
-            {extendedCountries.map((country, index) => (
-              <div
-                key={`${country.name}-${index}`}
-                className="flex flex-col items-center justify-center space-y-4 flex-shrink-0"
+            {countries.map((c) => (
+              <Link
+                key={c.slug}
+                href={`/destinations/${c.slug}`}
+                className="shrink-0 block hover:scale-105 transition-all duration-300"
+                style={{ width: cardWidth }}
               >
-                <div className="relative w-[220px] h-[180px] md:w-[250px] md:h-80 overflow-hidden rounded-3xl shadow-xl transition-transform duration-300 hover:scale-105">
-                  <Image
-                    src={country.img}
-                    alt={country.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 240px"
-                  />
-                </div>
-                <p
-                  className={`${interSemiBold.className} text-[#002147] text-lg md:text-xl font-semibold`}
+                <div
+                  className="rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+                  style={{ height: CARD_HEIGHT }}
                 >
-                  {country.name}
-                </p>
-              </div>
+                  <div className="relative w-full h-full">
+                    <Image src={c.img} alt={c.name} fill className="object-cover" />
+                    <p className="absolute bottom-4 left-8 text-white text-lg font-semibold px-4 py-2 bg-black/70 rounded-lg">
+                      {c.name}
+                    </p>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-center items-center gap-6 pt-10">
+        <div className="flex justify-center gap-4 pt-6">
           <button
-           style={{
-              width: "96px",
-              height: "64px",
-              borderRadius: "32px",
-              borderWidth: "2px",
-              paddingTop: "16px",
-              paddingRight: "32px",
-              paddingBottom: "16px",
-              paddingLeft: "32px",
-              opacity: 1,
-            }}
             onClick={handlePrev}
-            className="w-12 h-12 rounded-full border-2 border-[#006341] text-[#006341] flex items-center justify-center text-xl font-bold hover:bg-[#007B55] hover:text-white transition"
+            disabled={index === 0}
+            className="flex items-center justify-center border-2 border-gray-300 rounded-full hover:bg-gray-100 disabled:opacity-40"
+            style={{ width: 64, height: 64 }}
           >
-            &lt;
+            <ChevronLeft size={28} />
           </button>
+
           <button
-          style={{
-              width: "96px",
-              height: "64px",
-              borderRadius: "32px",
-              borderWidth: "2px",
-              paddingTop: "16px",
-              paddingRight: "32px",
-              paddingBottom: "16px",
-              paddingLeft: "32px",
-              opacity: 1,
-            }}
             onClick={handleNext}
-            className="w-12 h-12 rounded-full border-2 border-[#006341] text-[#006341] flex items-center justify-center text-xl font-bold hover:bg-[#007B55] hover:text-white transition"
+            disabled={index === maxIndex}
+            className="flex items-center justify-center border-2 border-gray-300 rounded-full hover:bg-gray-100 disabled:opacity-40"
+            style={{ width: 64, height: 64 }}
           >
-            &gt;
+            <ChevronRight size={28} />
           </button>
         </div>
       </div>

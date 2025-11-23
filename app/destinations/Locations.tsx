@@ -7,16 +7,19 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Locations() {
   const countries = [
-    { name: "Turkey", img: "/page2.1.png", slug: "turkey" },
-    { name: "UAE", img: "/page2.2.png", slug: "uae" },
-    { name: "India", img: "/page2.3.png", slug: "india" },
-    { name: "Singapore", img: "/page2.4.png", slug: "singapore" },
-    { name: "South Korea", img: "/page2.5.png", slug: "south-korea" },
-    { name: "Thailand", img: "/page2.1.png", slug: "thailand" },
-    { name: "Malaysia", img: "/page2.2.png", slug: "malaysia" },
-    { name: "Mexico", img: "/page2.3.png", slug: "mexico" },
-    { name: "Brazil", img: "/page2.4.png", slug: "Brazil" },
-    { name: "Spain", img: "/page2.5.png", slug: "spain" },
+    { name: "Turkey", img: "/turkey-new.jpg", slug: "turkey" },
+    { name: "Mexico", img: "/mexico.jpg", slug: "mexico" },
+    { name: "Thailand", img: "/thailand-new.jpg", slug: "thailand" },
+    { name: "Vietnam", img: "/vietnam.jpg", slug: "vietnam" },
+    { name: "Costa Rica", img: "/costa-rica.jpg", slug: "costa-rica" },
+    { name: "UAE", img: "/uae.jpg", slug: "uae" },
+    { name: "India", img: "/india.jpg", slug: "india" },
+    { name: "Brazil", img: "/brazil.jpg", slug: "brazil" },
+    { name: "Germany", img: "/germany.jpg", slug: "germany" },
+    { name: "Malaysia", img: "/malaysia.jpg", slug: "malaysia" },
+    { name: "Singapore", img: "/singapore.jpg", slug: "singapore" },
+    { name: "South Korea", img: "/south-korea.jpg", slug: "south-korea" },
+    { name: "Spain", img: "/spain.jpg", slug: "spain" },
   ];
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -50,10 +53,39 @@ export default function Locations() {
   const GAP = 44;
 
   const [index, setIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
   const maxIndex = countries.length - visibleCards;
 
   const handlePrev = () => setIndex((i) => Math.max(i - 1, 0));
   const handleNext = () => setIndex((i) => Math.min(i + 1, maxIndex));
+
+  // Touch handlers for swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && index < maxIndex) {
+      handleNext();
+    } else if (isRightSwipe && index > 0) {
+      handlePrev();
+    }
+
+    // Reset
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
 
   return (
     <section className="w-full py-20 px-6 md:px-24 bg-white">
@@ -61,23 +93,26 @@ export default function Locations() {
         Leading Medical <span className="text-[#25282B]">Destinations</span>
       </h2>
 
-      <div ref={viewportRef} className="relative w-full overflow-hidden">
+      <div ref={viewportRef} className="relative w-full overflow-hidden py-4">
         <div
-          className="flex transition-transform duration-700"
+          className="flex transition-transform duration-700 px-1"
           style={{
             gap: `${GAP}px`,
             transform: `translateX(-${index * (cardWidth + GAP)}px)`,
           }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {countries.map((c) => (
             <Link
               key={c.slug}
               href={`/destinations/${c.slug}`}
-              className="shrink-0 block active:scale-95 transition-transform"
+              className="shrink-0 block hover:scale-105 transition-all duration-300"
               style={{ width: cardWidth }}
             >
               <div
-                className="rounded-3xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.45)] hover:shadow-[0_28px_50px_rgba(0,0,0,0.55)] transition"
+                className="rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
                 style={{ height: CARD_HEIGHT }}
               >
                 <div className="relative w-full h-full">

@@ -21,7 +21,7 @@ export default function BrazilHero() {
         />
 
         {/* LEFT side fade overlay */}
-        <div className="absolute inset-0 bg-linear-to-r from-white/95 via-white/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/70 to-transparent" />
       </div>
 
       {/* TEXT CONTENT */}
